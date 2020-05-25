@@ -1,0 +1,5 @@
+LETTER = {C,A,O,Z,H,I,P,T,E,S};
+n_rows = 5;
+n_columns = [3,3,3,2,4];
+first_indices = [1, 4, 7,10,12];
+problem = [C,A,O,Z,H,I,C,A,O,P,I,T,E,S,T];
