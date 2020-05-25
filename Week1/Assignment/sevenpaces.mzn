@@ -43,6 +43,8 @@ constraint alldifferent(values);
 array[1..n_rows] of var int: rows_values = [sum([values[problem[first_indices[i]+j]]*10^(n_columns[i]-1-j) | j in 0..n_columns[i]-1]) | i in 1..n_rows ];
 constraint (sum([rows_values[i] | i in 1..n_rows-1]) = rows_values[n_rows]);
 
+%Objectiv function to maximize end result last row
+solve maximize (rows_values[n_rows]);
 
 output [
    show(to_enum(LETTER, i))++" = "++show(values[i])++";\n"
