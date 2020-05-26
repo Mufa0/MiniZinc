@@ -25,29 +25,29 @@ array[COURSE] of var DISH: dish;
 include "alldifferent.mzn";
 constraint alldifferent(dish);
 
-include "regular.mzn";
-constraint regular([taste[dish[i]] | i in COURSE], 7, 6, d, 1, {5});
-array[1..7, TASTE] of 0..7: d = 
-[| 0,0,4,0,0,0
- | 0,0,0,5,0,7
- | 0,0,0,0,6,7
- | 2,3,0,5,6,7
- | 0,3,4,0,0,7
- | 2,3,4,5,0,7
- | 2,3,4,5,6,0|];
+%No two dishes of same taste in a row
+array[1..len] of var bool: taste_diff;
+constraint  forall(i in 1..len-1)(taste[dish[i]] != taste[dish[i+1]]);
 
-constraint regular([temp[dish[i]] | i in COURSE], 2, 3, td, 1, {1,2});
-array[1..2, TEMP] of 0..2: td = 
-[| 2, 1, 1
- | 2, 0, 1
-|];
- 
+%First should be salty and last should be sweet
+constraint taste[dish[1]] == salty /\ taste[dish[len]] == sweet;
+
+%After spicy comes bland or sweet
+constraint forall(i in 1..len-1)(taste[dish[i]] = spicy -> taste[dish[i+1]] in {bland, sweet});
+
+%After sour comes bland or umami
+constraint forall(i in 1..len-1)(taste[dish[i]] = sour -> taste[dish[i+1]] in {bland, umame});
+
+%No spicy or umame after sweet
+constraint forall(i in 1..len-1)(taste[dish[i]] = sweet -> taste[dish[i+1]] in {salty, sour, bland});
 
 %Between hot and cold must be warm dish
 constraint forall(i in 1..len-1)( temp[dish[i]] = hot -> forall(j in i+1..len)(temp[dish[j]] = cold
                                     -> exists(k in i+1..j-1)(temp[dish[k]] = warm) ) );
 %No tow heavy dishes in a row
 constraint forall(i in 1..len-2)(heavy[dish[i]] /\ heavy[dish[i+1]] -> not heavy[dish[i+2]]);
+
+%Calculation of changes in dish
 
 %Objective function (sum of value of dishes + number of changes in taste, temperature and weight between each pair of consecutive dishes )
 %Needs to be maximized
