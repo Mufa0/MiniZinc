@@ -13,24 +13,22 @@ array[WARRIOR] of CLAN: clan;
 
 array[CLAN,CLAN] of 0..1: hates;
 
-%SET of warrirs choosen
-/*
-var set of WARRIOR: result;
-constraint (card(result) >= l /\ card(result) <= u );
-*/
+array[1..u] of var WARRIOR: raid;
 
-%Array of warrors choosen. Size of this array is number of possible warriors and value is 0-1, which represents if warrior on index i is choosen or not
+%Constraint: each warrior can occur only once
+constraint forall([ raid[i] >= raid[i+1] + (raid[i] != dummy)| i in 1..u-1 ]);
 
-array[WARRIOR] of var 0..1: result;
-constraint (sum(result) >= l /\ sum(result) <= u);
+%Constraint: minimum number of warriors is l
+constraint forall([ raid[i] != dummy | i in 1..l ]);
 
+%Constraint: maximum m pairs of warriors can be inside raid whose clans hate each other
+constraint sum([ hates[clan[raid[i]], clan[raid[j]]] | i,j in 1..u where i<j]) <= m;
 
+var int: obj;
+constraint obj = sum([strength[raid[i]] | i in 1..u]);
 
+solve maximize(obj);
 
-
-%Hatred constraint: no more then m pairs can exists that hates each other
-/*TODO: create matrix of connections and multiply with matrix of hates between warriors ( we will be left with only 1 values on choosen wariors that hate each other )
-* transfer to 1d array and sum values
-*/
-
+output ["raid = {"] ++ [if fix(raid[u-i]) != dummy then show(raid[u-i])
+++ if i < u /\ fix(raid[u-(i+1)]) != dummy then ", " else "" endif else "" endif | i in 0..u ] ++ ["};\nobj = \(obj)"]
 
