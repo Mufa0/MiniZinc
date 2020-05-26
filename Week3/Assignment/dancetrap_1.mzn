@@ -33,50 +33,39 @@ constraint forall(i in FACE)(count(face, i) <= maxface[i]);
 %It must end with stand, neutral and blank
 constraint legs[len] = stand /\ arms[len] = neutral /\ face[len] = blank;
 
-include "regular.mzn";
-constraint regular(legs, 6, 6, ld, 1, {6});
-constraint regular(arms, 5, 5, ad, 1, {5});
-constraint regular(face, 6, 6, fd, 1, {6});
 
-array[1..6, LEGS] of 0..6: ld =
-[| 0,0,3,4,5,6
- | 1,0,3,0,0,6
- | 1,0,3,4,5,6
- | 1,0,3,4,5,6
- | 1,2,3,4,5,6
- | 1,0,2,4,5,6
-|];
-
-
-array[1..5, ARMS] of 0..5: ad =
-[| 0,2,3,4,5
- | 1,0,3,0,5
- | 1,2,0,0,5
- | 0,2,3,0,5
- | 0,2,3,4,5
-|];
-
-array[1..6, FACE] of 0..6: fd =
-[| 0,2,3,4,5,6
- | 1,0,3,0,5,6
- | 1,2,0,0,5,6
- | 1,2,3,0,5,6
- | 1,2,3,4,0,6
- | 1,2,3,4,5,6
-|];
+%Prep goes before leap
+constraint forall(i in 2..len)(legs[i] = leap -> legs[i-1] = prep);
+%After spin goes curtsey, prep or stand
+constraint forall(i in 1..len-1)(legs[i] = spin -> legs[i+1] in {curtsey, prep, stand});
+%After leap goes spin, waltz or stand
+constraint forall(i in 1..len-1)(legs[i] = leap -> legs[i+1] in {spin, waltz, stand});
+%Waltz can go max three times in row
+constraint forall(i in 1..len-3)(legs[i] = waltz /\ legs[i+1] = waltz /\ legs[i+2] = waltz -> legs[i+3] in {spin, leap, curtsey, prep, stand});
+%Acter curtsey no prep
+constraint forall(i in 1..len-1)(legs[i] = curtsey -> legs[i+1] in {spin, leap, waltz, curtsey, stand}); 
 
 %Between waltz and curtsey there must be a stand
 constraint forall(i in 1..len-1)(legs[i] = waltz -> forall(j in i+1..len)(legs[j] = curtsey -> exists(k in i+1..j-1)(legs[k] = stand)));
 
 /*------------------------------------------------------------------------------*/
+%Hand becom move only after out or up
+constraint forall(i in 2..len)(arms[i] = beckon -> arms[i-1] in {out, up});
+
+%Wrapped can only be after beckon or neutral ( wrapped can be first since before first is neutral )
+constraint forall(i in 2..len)(arms[i] = wrapped -> arms[i-1] in {beckon, neutral} \/ i = 2);
 
 %Only neutral can go two times in row
+constraint forall(i in 1..len-1)(arms[i] != neutral -> arms[i] != arms[i+1]);
 constraint forall(i in 1..len-2)(arms[i] = neutral /\ arms[i+1] = neutral -> arms[i+2] != neutral);
 
 /*------------------------------------------------------------------------------*/
 %Only blank can go two time in row
+constraint forall(i in 1..len-1)(face[i] != blank -> face[i] != face[i+1]);
 constraint forall(i in 1..len-2)(face[i] = blank /\ face[i+1] = blank -> face[i+2] != blank);
 
+%No think after smile or bat
+constraint forall(i in 2..len)(face[i] = think -> face[i-1] in {smile, batt});
 
 /*------------------------------------------------------------------------------*/
 var int: value;
@@ -87,5 +76,5 @@ var int: boredom_value = boredom*(len-1);
 var int: obj = value + enticement - boredom_value;
 
 solve maximize(obj);
-output["len = \(len-1);\nlegs = \(legs);\narms = \(arms);\nface = \(face);\nobj = \(obj);"]
+output["len = \(len-1);\nlegs = \([legs[i] | i in 1..len]);\narms = \([arms[i] | i in 1..len]);\nface = \([face[i] | i in 1..len]);\nobj = \(obj);"]
 %\nvalue = \(value);\nenticement = \(enticement);\nboredom = \(boredom_value);"];
