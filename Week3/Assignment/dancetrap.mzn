@@ -30,10 +30,10 @@ array[STEP] of var FACE: face;
 
 
 %Each action can not go more then n number of times
-%constraint global_cardinality_low_up_closed(legs, [i | i in LEGS], [0 | i in LEGS], maxlegs);
-constraint forall(i in LEGS)(count(legs, i) <= maxlegs[i]);
-constraint forall(i in ARMS)(count(arms, i) <= maxarms[i]);
-constraint forall(i in FACE)(count(face, i) <= maxface[i]);
+include "global_cardinality_low_up_closed.mzn";
+constraint global_cardinality_low_up_closed(legs, [i | i in LEGS], [0 | i in LEGS], maxlegs);
+constraint global_cardinality_low_up_closed(arms, [i | i in ARMS], [0 | i in ARMS], maxarms);
+constraint global_cardinality_low_up_closed(face, [i | i in FACE], [0 | i in FACE], maxface);
 
 constraint forall(i in len+1..maxlen)(legs[STEP[i]]=stand);
 constraint forall(i in len+1..maxlen)(arms[STEP[i]]=neutral);
@@ -42,8 +42,8 @@ constraint forall(i in len+1..maxlen)(face[STEP[i]]=blank);
 include "regular.mzn";
 constraint regular(legs, 6, 6, ld, 6, {6});
 constraint regular(arms, 5, 5, ad, 5, {5});
-constraint regular(face, 6, 6, fd, 6, {6});
-
+%constraint regular(face, 6, 6, fd, 6, {6});
+constraint regular(face, 11, 6, fd, 6, {6});
 array[1..6, LEGS] of 0..6: ld =
 [| 0,0,0,4,5,6
  | 1,0,3,0,0,6
@@ -62,13 +62,18 @@ array[1..5, ARMS] of 0..5: ad =
  | 0,2,3,4,5
 |];
 
-array[1..6, FACE] of 0..6: fd =
-[| 0,2,3,0,5,6
+array[1..11, FACE] of 0..11: fd =
+[| 7,2,3,0,5,6
+ | 1,8,3,4,5,6
+ | 1,2,9,0,5,6
+ | 1,2,3,10,5,6
+ | 1,2,3,4,11,6
+ | 1,2,3,4,5,6
+ | 0,2,3,0,5,6
  | 1,0,3,4,5,6
  | 1,2,0,0,5,6
  | 1,2,3,0,5,6
  | 1,2,3,4,0,6
- | 1,2,3,4,5,6
 |];
 
 %Between waltz and curtsey there must be a stand
@@ -81,14 +86,6 @@ constraint forall(i in 1..len-3)(legs[i] = waltz /\ legs[i+1] = waltz /\ legs[i+
 %Only neutral can go two times in row
 constraint forall(i in 1..len-2)(arms[i] = neutral /\ arms[i+1] = neutral -> arms[i+2] != neutral);
 
-/*------------------------------------------------------------------------------*/
-%Only blank can go two time in row
-/*constraint forall(i in 1..len-2)(face[i] = smile /\ face[i+1] = smile -> face[i+2] != smile);
-constraint forall(i in 1..len-2)(face[i] = wink /\ face[i+1] = wink -> face[i+2] != wink);
-constraint forall(i in 1..len-2)(face[i] = batt /\ face[i+1] = batt -> face[i+2] != batt);
-constraint forall(i in 1..len-2)(face[i] = think /\ face[i+1] = think -> face[i+2] != think);
-constraint forall(i in 1..len-2)(face[i] = glow /\ face[i+1] = glow -> face[i+2] != glow);
-*/
 /*------------------------------------------------------------------------------*/
 %Kick out all -1 pairs for them not to lower objective function
 constraint forall(i in 1..len)(dance_value[legs[i], arms[i]] >= 0);
