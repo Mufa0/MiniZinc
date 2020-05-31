@@ -5,7 +5,7 @@ int: n;
 array[1..n] of var 1..n: order;
 
 %Difference between each adjacent note
-array[1..n-1] of var 1..n-1: diffs;
+array[1..n-1] of var int: diffs;
 
 %Difference between each adjacent note has to be different
 constraint forall(i in 1..n-1)(diffs[i] = abs(order[i] - order[i+1]));

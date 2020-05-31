@@ -24,6 +24,10 @@ constraint inverse(posn, order);
 
 constraint abs(posn[1] - posn[n]) = 1;
 
+
+constraint inverse(dposn, diffs);
+constraint dposn[n-1] = min(posn[1], posn[n]);
+
 solve satisfy;
-int:d =  ceil(ln(n+1) / ln(10.0));
-output [show_int(d,i)++" " | i in order] ++["\n"]++ [" "++show_int(d,i) | i in diffs];
+
+output["order = \(order);\ndiffs = \(diffs);\nposn = \(posn);\ndposn = \(dposn);"]
