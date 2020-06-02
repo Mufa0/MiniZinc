@@ -19,7 +19,6 @@ array[HORSE] of var mCOURT: court;
 
 %INVERSE FUNCTION
 constraint forall(i in COURT where horse[i] != 0)(court[horse[i]] = i);
-
 %Emperor has to have biggest enjoy value
 constraint forall(i in 2..n where horse[i] > 0)(enjoy[emperor, horse[emperor]] > enjoy[i, horse[i]]);
 
@@ -30,7 +29,7 @@ constraint forall(i in COURT where horse[i] > 0)(enjoy[i, horse[i]] > -1);
 include "global_cardinality_low_up_closed.mzn";
 include "global_cardinality.mzn";
 constraint if n >= m then global_cardinality(horse, HORSE, [1 | i in HORSE]) else global_cardinality_low_up(horse, HORSE, [0 | i in HORSE], [1 | i in HORSE]) endif;
-
+constraint if m > n then global_cardinality(court, COURT, [1 | i in COURT]) else global_cardinality_low_up(court, COURT, [0 | i in COURT], [1 | i in COURT]) endif;
 %If court member holds higher rank then either  beauty of  their horse can be no less then one of lower rank,
 %lower rank must not ride  or both don't ride
 constraint forall(i in 1..n, j in 1..n where i != j)(rank[i] > rank[j] -> (horse[j] = 0 \/ (horse[i] = 0 /\ horse[j] = 0) \/ beauty[horse[i]] >= beauty[horse[j]]));
@@ -43,5 +42,4 @@ var int: obj;
 obj = sum(i in COURT where horse[i] != 0)(enjoy[i, horse[i]]) + -100*violations;
 
 solve maximize(obj);
-%output["horse = \(horse);\ncourt = \(tmp);\nsum = \(sum(tmp)): \(violations);\nobj = \(obj));"];
 output["horse = \(horse);\nobj = \(obj);"];
