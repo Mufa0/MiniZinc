@@ -34,14 +34,16 @@ output ["obj = \(obj);\nwhat = \(what);\nplace = \(place);\n"];% poetry
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ALL MODELLING ERRORS ARE BELOW THIS LINE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-constraint forall(i in ESSTANZA, j in POSN)(trace("\(place[i]) = \(j) <-> \(what[j]) = \(i) ",place[i] = j <-> what[j] = i));
+%Maybe transfer to implication
+constraint forall(i in ESSTANZA, j in POSN)(place[i] = j <-> what[j] = i );
 
-include "alldifferent.mzn";
-constraint alldifferent(what);
+%This should be except zero, since zero means some other stanza is inside
+include "alldifferent_except_0.mzn";
+constraint alldifferent_except_0(what);
 
 constraint forall(p1, p2 in ESSTANZA where p1 < p2)
-                 (kind[p1] = kind[p2] -> abs(place[p1] - place[p2]) > 1);
+                 (kind[p1] = kind[p2] -> (abs(place[p1] - place[p2]) > 1));
 
-var int: obj = sum(p in 1..n-1)(abs(effect[what[p]] - effect[what[p+1]]));
+var int: obj = sum(p in 1..n-1 )( if what[p] != 0 /\ what[p+1] != 0 then abs(effect[what[p]] - effect[what[p+1]]) else 0 endif);
 
 solve maximize obj;
